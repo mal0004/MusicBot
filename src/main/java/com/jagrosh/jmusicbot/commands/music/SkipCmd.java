@@ -18,8 +18,9 @@ package com.jagrosh.jmusicbot.commands.music;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.audio.AudioHandler;
+import com.jagrosh.jmusicbot.audio.RequestMetadata;
 import com.jagrosh.jmusicbot.commands.MusicCommand;
-import net.dv8tion.jda.api.entities.User;
+import com.jagrosh.jmusicbot.utils.FormatUtil;
 
 /**
  *
@@ -41,7 +42,12 @@ public class SkipCmd extends MusicCommand
     public void doCommand(CommandEvent event) 
     {
         AudioHandler handler = (AudioHandler)event.getGuild().getAudioManager().getSendingHandler();
-        if(event.getAuthor().getIdLong()==handler.getRequester())
+        RequestMetadata rm = handler.getRequestMetadata();
+        double skipRatio = bot.getSettingsManager().getSettings(event.getGuild()).getSkipRatio();
+        if(skipRatio == -1) {
+          skipRatio = bot.getConfig().getSkipRatio();
+        }
+        if(event.getAuthor().getIdLong() == rm.getOwner() || skipRatio == 0)
         {
             event.reply(event.getClient().getSuccess()+" Skipped **"+handler.getPlayer().getPlayingTrack().getInfo().title+"**");
             handler.getPlayer().stopTrack();
@@ -60,13 +66,12 @@ public class SkipCmd extends MusicCommand
             }
             int skippers = (int)event.getSelfMember().getVoiceState().getChannel().getMembers().stream()
                     .filter(m -> handler.getVotes().contains(m.getUser().getId())).count();
-            int required = (int)Math.ceil(listeners * .55);
-            msg+= skippers+" votes, "+required+"/"+listeners+" needed]`";
+            int required = (int)Math.ceil(listeners * skipRatio);
+            msg += skippers + " votes, " + required + "/" + listeners + " needed]`";
             if(skippers>=required)
             {
-                User u = event.getJDA().getUserById(handler.getRequester());
-                msg+="\n"+event.getClient().getSuccess()+" Skipped **"+handler.getPlayer().getPlayingTrack().getInfo().title
-                    +"**"+(handler.getRequester()==0 ? "" : " (requested by "+(u==null ? "someone" : "**"+u.getName()+"**")+")");
+                msg += "\n" + event.getClient().getSuccess() + " Skipped **" + handler.getPlayer().getPlayingTrack().getInfo().title
+                    + "** " + (rm.getOwner() == 0L ? "(autoplay)" : "(requested by **" + FormatUtil.formatUsername(rm.user) + "**)");
                 handler.getPlayer().stopTrack();
             }
             event.reply(msg);

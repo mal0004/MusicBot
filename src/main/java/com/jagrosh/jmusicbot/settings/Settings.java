@@ -35,10 +35,12 @@ public class Settings implements GuildSettingsProvider
     protected long roleId;
     private int volume;
     private String defaultPlaylist;
-    private boolean repeatMode;
+    private RepeatMode repeatMode;
+    private QueueType queueType;
     private String prefix;
-    
-    public Settings(SettingsManager manager, String textId, String voiceId, String roleId, int volume, String defaultPlaylist, boolean repeatMode, String prefix)
+    private double skipRatio;
+
+    public Settings(SettingsManager manager, String textId, String voiceId, String roleId, int volume, String defaultPlaylist, RepeatMode repeatMode, String prefix, double skipRatio, QueueType queueType)
     {
         this.manager = manager;
         try
@@ -69,9 +71,11 @@ public class Settings implements GuildSettingsProvider
         this.defaultPlaylist = defaultPlaylist;
         this.repeatMode = repeatMode;
         this.prefix = prefix;
+        this.skipRatio = skipRatio;
+        this.queueType = queueType;
     }
     
-    public Settings(SettingsManager manager, long textId, long voiceId, long roleId, int volume, String defaultPlaylist, boolean repeatMode, String prefix)
+    public Settings(SettingsManager manager, long textId, long voiceId, long roleId, int volume, String defaultPlaylist, RepeatMode repeatMode, String prefix, double skipRatio, QueueType queueType)
     {
         this.manager = manager;
         this.textId = textId;
@@ -81,6 +85,8 @@ public class Settings implements GuildSettingsProvider
         this.defaultPlaylist = defaultPlaylist;
         this.repeatMode = repeatMode;
         this.prefix = prefix;
+        this.skipRatio = skipRatio;
+        this.queueType = queueType;
     }
     
     // Getters
@@ -109,7 +115,7 @@ public class Settings implements GuildSettingsProvider
         return defaultPlaylist;
     }
     
-    public boolean getRepeatMode()
+    public RepeatMode getRepeatMode()
     {
         return repeatMode;
     }
@@ -119,10 +125,20 @@ public class Settings implements GuildSettingsProvider
         return prefix;
     }
     
+    public double getSkipRatio()
+    {
+        return skipRatio;
+    }
+
+    public QueueType getQueueType()
+    {
+        return queueType;
+    }
+
     @Override
     public Collection<String> getPrefixes()
     {
-        return prefix == null ? Collections.EMPTY_SET : Collections.singleton(prefix);
+        return prefix == null ? Collections.emptySet() : Collections.singleton(prefix);
     }
     
     // Setters
@@ -156,7 +172,7 @@ public class Settings implements GuildSettingsProvider
         this.manager.writeSettings();
     }
     
-    public void setRepeatMode(boolean mode)
+    public void setRepeatMode(RepeatMode mode)
     {
         this.repeatMode = mode;
         this.manager.writeSettings();
@@ -165,6 +181,18 @@ public class Settings implements GuildSettingsProvider
     public void setPrefix(String prefix)
     {
         this.prefix = prefix;
+        this.manager.writeSettings();
+    }
+
+    public void setSkipRatio(double skipRatio)
+    {
+        this.skipRatio = skipRatio;
+        this.manager.writeSettings();
+    }
+
+    public void setQueueType(QueueType queueType)
+    {
+        this.queueType = queueType;
         this.manager.writeSettings();
     }
 }
